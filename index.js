@@ -4,50 +4,61 @@ let players = [];
 let gameStarted = false;
 
 const server = http.createServer((req, res) => {
-    if (req.method === "POST") {
-        let body = "";
-        req.on("data", chunk => body += chunk);
-        req.on("end", () => {
-            let data = JSON.parse(body);
-            let msg = data.userRequest.utterance;
-            let reply = "";
+  if (req.method === "POST") {
+    let body = "";
 
-            if (msg === "/잇기참가") {
-                if (!players.includes(data.userRequest.user.id)) {
-                    players.push(data.userRequest.user.id);
-                    reply = "참가 완료. 현재 인원: " + players.length;
-                } else {
-                    reply = "이미 참가했습니다.";
-                }
-            } 
-            else if (msg === "/잇기시작") {
-                if (players.length < 1) {
-                    reply = "참가자가 없습니다.";
-                } else {
-                    gameStarted = true;
-                    reply = "끝말잇기 시작! 참가자 수: " + players.length;
-                }
-            }
-            else {
-                reply = "명령어: /잇기참가 또는 /잇기시작";
-            }
+    req.on("data", chunk => {
+      body += chunk;
+    });
 
-            res.writeHead(200, {'Content-Type': 'application/json'});
-            res.end(JSON.stringify({
-                version: "2.0",
-                template: {
-                    outputs: [{
-                        simpleText: {
-                            text: reply
-                        }
-                    }]
-                }
-            }));
-        });
-    }
+    req.on("end", () => {
+      let message = "";
+      let responseText = "";
+
+      try {
+        const data = JSON.parse(body);
+        message = data.userRequest.utterance;
+        const user = data.userRequest.user.id;
+
+        if (message === "/입장") {
+          if (!players.includes(user)) {
+            players.push(user);
+            responseText = "참가 완료";
+          } else {
+            responseText = "이미 참가함";
+          }
+        }
+        else if (message === "/시작") {
+          if (players.length < 1) {
+            responseText = "참가자 없음";
+          } else {
+            gameStarted = true;
+            responseText = "끝말잇기 시작!";
+          }
+        }
+        else {
+          responseText = "명령어: /입장 /시작";
+        }
+
+      } catch (e) {
+        responseText = "오류 발생";
+      }
+
+      res.writeHead(200, {"Content-Type": "application/json"});
+      res.end(JSON.stringify({
+        version: "2.0",
+        template: {
+          outputs: [{
+            simpleText: {
+              text: responseText
+            }
+          }]
+        }
+      }));
+    });
+  }
 });
 
 server.listen(3000, () => {
-    console.log("서버 실행됨");
+  console.log("서버 실행됨");
 });
-
