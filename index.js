@@ -1,3 +1,9 @@
+if (req.method === "GET") {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("서버 정상 작동중");
+  return;
+}
+
 const http = require("http");
 
 let players = [];
